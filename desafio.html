@@ -1,0 +1,129 @@
+<DOCTYPE! html>
+
+<html>
+
+  <head>
+    <title> Desafio </title>
+  </head>
+
+  <body>
+    <h1> Cadastro de Usuário </h1>
+    <form name="indetificacao" onsubmit="MostraNome()">
+      Nome: <input type="text" name="nome_usr">  (ex.:Nome Sobrenome)<br>
+      Telefone: <input type="text" name="tel_usr"> (ex.:99-99999999)<br>
+      Como nos conheceu:
+      <select name="conheceu">
+        <option value="tv">TV</option>
+        <option value="internet">Internet</option>
+        <option value="outro">Outro</option>
+      </select> <br>
+      Rede Social:
+      Sim <input type="radio" name="SN" value="sim" onclick="MostraRedeS(document.getElementById('rede_so'))">
+      Não <input type="radio" name="SN" value="não" onclick="EscondeRedeS(document.getElementById('rede_so'))">
+      <div id="rede_so" name="rede_s" style="display:none;"> <!-- checkbox se inicia invisivel -->
+        Facebook: <input type="checkbox" name="fb" value="Facebook"> <br>
+        LinkedIn: <input type="checkbox" name="li" value="LinkedIn"> <br>
+        Instagram: <input type="checkbox" name="ig" value="Instagram"> <br>
+      </div>
+    </form>
+
+    <button id="envia_info" onclick="Validacoes()"> Enviar</button>
+
+    <script>
+      function MostraRedeS(apresenta){ /*mostra as redes sociais caso marcada a opcao sim*/
+        apresenta.style.display = 'block';
+      }
+      function EscondeRedeS(apresenta){ /*esconde as redes sociais caso marcada a opcao nao*/
+        apresenta.style.display = 'none';
+      }
+      function Validacoes(){ /*chama as funcoes que validam os campos inseridos*/
+        var erro=0;
+        erro = ValidaNome();
+        if(erro){
+          location.reload(); /*atualiza a pagina*/
+        }
+        else{
+          erro=ValidaTel();
+          if(erro){
+            location.reload();
+          }
+          else{
+            document.getElementById("envia_info").disabled=true;
+            EnviaInfo();
+          }
+        }
+      }
+      function ValidaNome(){
+        var qtd_nomes;
+        var nomes = document.forms["indetificacao"]["nome_usr"].value
+        nomes = nomes.replace(/(^\s*)|(\s*$)/gi,""); /*remove possiveis espacos antes e depois do nome*/
+        nomes = nomes.replace(/[ ]{2,}/gi," "); /*converte 2 espacos em apenas 1*/
+        qtd_nomes = nomes.split(' ').length; /*separa nomes pelo char espaco e devolve a qtd de palavras*/
+        if(qtd_nomes<2) {
+          alert("Erro! O campo nome deve conter pelo menos um nome e um sobrenome!");
+          return 1;
+        }
+      }
+      function ValidaTel(){
+        var nao_numero=0, nao_hifen=0;
+        var tel = document.forms["indetificacao"]["tel_usr"].value
+        if(tel.length!=11) { /*numero de telefone so pode ter 10 char*/
+          alert("Erro no campo Telefone! A quantidade de caracteres inseridos inválida!");
+          return 1;
+        }
+        else {
+          for(i=0; i<10; i++){ /*percorre cada elemento da string*/
+            if(i!=2){
+              if(!(tel[i]>=0 && tel[i]<=9)){ /*verifica se eh numero*/
+                nao_numero = 1; /*flag nao eh numero*/
+              }
+            }
+            else{
+              if(tel[i]!='-'){
+                nao_hifen=1; /*flag nao tem hifen*/
+              }
+            }
+          }
+          if(nao_numero){
+            alert("Erro no campo Telefone! Caracter inserido no lugar de número");
+            return 1;
+          }
+          else if (nao_hifen==1) {
+            alert("Erro no campo Telefone! Os números devem ser separados por -");
+            return 1;
+          }
+          else{
+            return 0;
+          }
+        }
+      }
+      function InsereCB(){ /*funcao que checa quais checkbox foram preenchidos e completa array de acordo*/
+        var cb=[];
+        if(document.forms["indetificacao"]["fb"].checked == true){
+          cb[0]=document.forms["indetificacao"]["fb"].value;
+        }
+        if(document.forms["indetificacao"]["li"].checked == true){
+          cb[1]=document.forms["indetificacao"]["li"].value;
+        }
+        if(document.forms["indetificacao"]["ig"].checked == true){
+          cb[2]=document.forms["indetificacao"]["ig"].value;
+        }
+        return cb;
+      }
+      function EnviaInfo(){
+        var nomes = document.forms["indetificacao"]["nome_usr"].value;
+        var tels = document.forms["indetificacao"]["tel_usr"].value;
+        var con = document.forms["indetificacao"]["conheceu"].value;
+        var s = document.forms["indetificacao"]["SN"].value;
+        var cb = InsereCB();
+        var info = {Nome: nomes, Telefone: tels, Como_Conheceu: con, Rede_Social: s, Quais: cb};
+        var infoJSON = JSON.stringify(info); /*transforma as informacoes no formato json*/
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", "http://localhost:8080", true);
+        xhr.setRequestHeader('Content-Type', 'application/json; charset=UTF-8');
+        xhr.send(infoJSON);
+      }
+    </script>
+  </body>
+
+</html>
